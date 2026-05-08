@@ -2,9 +2,9 @@
 
 public class Product
 {
-    private Guid Id;
-    private String Name;
-    private String Description;
-    private double Price;
-    private String StoreId;
+    public Guid Id { get; set; }
+    public String Name { get; set; }
+    public String Description { get; set; }
+    public double Price { get; set; }
+    public String StoreId { get; set; }
 }

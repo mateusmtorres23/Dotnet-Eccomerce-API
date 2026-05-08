@@ -2,8 +2,9 @@
 
 public class User
 {
-    private Guid Id;
-    private String Email;
-    private String Password;
-    private UserRole Role;
+    public Guid Id { get; set; }
+    public String Email { get; set; }
+    public String Password { get; set; }
+    public UserRole Role { get; set; }
+    public List<CartItem> Cart { get; set; }
 }

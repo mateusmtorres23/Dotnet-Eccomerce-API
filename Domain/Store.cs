@@ -2,8 +2,8 @@
 
 public class Store
 {
-    private Guid Id;
-    private String Name;
-    private String OwnerId;
-    private List<Product> Products;
+    public Guid Id { get; set; }
+    public String Name { get; set; }
+    public String OwnerId { get; set; }
+    public List<Product> Products { get; set; }
 }
