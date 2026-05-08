@@ -16,6 +16,9 @@
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+      <Content Include="..\.env">
+        <Link>.env</Link>
+      </Content>
     </ItemGroup>
 
 </Project>
