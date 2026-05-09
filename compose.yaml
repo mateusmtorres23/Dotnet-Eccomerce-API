@@ -1,17 +1,4 @@
 ﻿services:
-  ecommerce-api:
-    image: ecommerce-api
-    build:
-      context: .
-      dockerfile: ecommerce-api/Dockerfile
-    ports:
-      - "5101:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=db;Database=ecommerce_db;Username=admin;Password=secret_pass
-    depends_on:
-      - postgres
-
   postgres:
     image: postgres:17-alpine
     ports:
@@ -22,6 +9,18 @@
       - POSTGRES_DB=${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    
+  ecommerce-api:
+    image: ecommerce-api
+    build:
+      context: .
+      dockerfile: ecommerce-api/Dockerfile
+    ports:
+      - "5101:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+      - postgres
 
 volumes:
   postgres_data:
