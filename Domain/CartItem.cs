@@ -2,8 +2,8 @@
 
 public class CartItem
 {
-    public Guid Id { get; set; }
-    public String OwnerId { get; set; }
-    public String ProductId { get; set; }
-    public String StoreId { get; set; }
+    public required Guid Id { get; set; }
+    public required String OwnerId { get; set; }
+    public required String ProductId { get; set; }
+    public required String StoreId { get; set; }
 }
