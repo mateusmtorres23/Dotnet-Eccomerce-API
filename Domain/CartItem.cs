@@ -3,7 +3,6 @@
 public class CartItem
 {
     public required Guid Id { get; set; }
-    public required String OwnerId { get; set; }
-    public required String ProductId { get; set; }
-    public required String StoreId { get; set; }
+    public required Guid UserId { get; set; }
+    public required Guid ProductId { get; set; }
 }
