@@ -8,8 +8,7 @@ namespace Tests;
 
 public class AppDbContextTest : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder()
-        .WithImage("postgres:17-alpine")
+    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("ecommerce_testdb")
         .WithUsername("test_user")
         .WithPassword("test_password")
@@ -44,8 +43,7 @@ public class AppDbContextTest : IAsyncLifetime
             Id = Guid.NewGuid(), 
             Email = "testemail@email.com",  
             Password = "test_password", 
-            Role = UserRole.Customer, 
-            Cart = new List<CartItem>()
+            Role = UserRole.Customer,
         };
         
         Store testStore = new Store
@@ -53,7 +51,6 @@ public class AppDbContextTest : IAsyncLifetime
             Id = Guid.NewGuid(), 
             Name = "TestStore", 
             OwnerId = testUser.Id, 
-            Products = new List<Product>()
         };
 
         Product testProduct1 = new Product
@@ -83,7 +80,8 @@ public class AppDbContextTest : IAsyncLifetime
         
         await act.Should().ThrowAsync<DbUpdateException>();
     }
-
+    
+    [Fact]
     public async Task CheckCascadeDeletion()
     {
         User testUser = new User
@@ -91,16 +89,14 @@ public class AppDbContextTest : IAsyncLifetime
             Id = Guid.NewGuid(), 
             Email = "testemail@email.com",  
             Password = "test_password", 
-            Role = UserRole.Customer, 
-            Cart = new List<CartItem>()
+            Role = UserRole.Customer,
         };
         
         Store testStore = new Store
         {
             Id = Guid.NewGuid(), 
             Name = "TestStore", 
-            OwnerId = testUser.Id, 
-            Products = new List<Product>()
+            OwnerId = testUser.Id,
         };
         
         Product testProduct = new Product

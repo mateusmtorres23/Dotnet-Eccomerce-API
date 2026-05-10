@@ -52,7 +52,7 @@ public class AppDbContext : DbContext
             
             entity.HasOne<User>()
                 .WithMany()
-                .HasForeignKey(e => e.OwnerId)
+                .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
             
             entity.HasOne<Product>()
