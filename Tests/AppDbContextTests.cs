@@ -6,7 +6,7 @@ using Infra;
 
 namespace Tests;
 
-public class AppDbContextTest : IAsyncLifetime
+public class AppDbContextTests : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("ecommerce_testdb")
