@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
-using Domain;
+using Domain.Models;
 using Infra;
 
 namespace Tests;

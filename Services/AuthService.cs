@@ -1,6 +1,6 @@
 ﻿using Infra;
-using Domain;
-using Domain.DTOs;
+using Domain.Models;
+using Domain.DTOs.Auth;
 using Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,7 +42,7 @@ public class AuthService
             throw new DuplicateEmailException("Email already in use.");
         }
         
-        return new RegisterResponse{ Email = request.Email };
+        return new RegisterResponse(newUser.Email);
     }
 
     public async Task<LoginResponse> LoginUser(LoginRequest request)
@@ -57,6 +57,6 @@ public class AuthService
 
         string token = _tokenService.GenerateToken(user);
         
-        return new LoginResponse { Token = token };
+        return new LoginResponse(token);
     }
 }

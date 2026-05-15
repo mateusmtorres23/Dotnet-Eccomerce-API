@@ -1,6 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Domain;
+using Domain.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Services;
