@@ -1,3 +1,3 @@
 ﻿namespace Domain.DTOs.Store;
 
-public record StoreInfo();
+public record StoreInfo(Guid Id, string Name);
