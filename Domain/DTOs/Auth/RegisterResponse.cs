@@ -1,3 +1,3 @@
-﻿namespace Domain.DTOs;
+﻿namespace Domain.DTOs.Auth;
 
 public record RegisterResponse(string Email);
