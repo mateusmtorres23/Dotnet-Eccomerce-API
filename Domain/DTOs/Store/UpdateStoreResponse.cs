@@ -1,3 +1,3 @@
 ﻿namespace Domain.DTOs.Store;
 
-public record UpdateStoreResponse();
+public record UpdateStoreResponse(string Name);

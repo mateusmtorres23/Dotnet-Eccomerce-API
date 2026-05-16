@@ -1,3 +1,3 @@
-﻿namespace Domain.DTOs.Products;
+﻿namespace Domain.DTOs.Product;
 
-public record ProductInfo();
+public record ProductInfo(Guid Id, string Name, decimal Price);

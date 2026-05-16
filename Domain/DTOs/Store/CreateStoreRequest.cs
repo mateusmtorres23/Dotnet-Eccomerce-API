@@ -1,3 +1,3 @@
 ﻿namespace Domain.DTOs.Store;
 
-public record CreateStoreRequest();
+public record CreateStoreRequest(Guid OwnerId, string Name);
