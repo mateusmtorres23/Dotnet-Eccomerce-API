@@ -15,20 +15,36 @@ public class UserService
         _dbContext = dbContext;
     }
 
-    public async Task<List<UserInfo>> ListUsers()
+    public async Task<List<UserInfo>> ListUsers(Guid userId)
     {
+        User user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == userId)
+            ?? throw new ArgumentException($"User not found");
+
+        if (user.Role == UserRole.Admin)
+        {
+            throw new UnauthorizedAccessException("This user is not authorized to view this information");
+        }
+
         return await _dbContext.Users
             .Select(u => new UserInfo(u.Id, u.Email))
             .ToListAsync();
     }
     
-    public async Task<UserInfoDetails> GetUserDetails(Guid userId)
+    public async Task<UserInfoDetails> GetUserDetails(Guid userId, Guid viewUserId)
     {
-        var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == userId)
-            ?? throw new ArgumentException($"User with ID {userId} not found");
+        User user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == userId)
+                    ?? throw new ArgumentException($"User not found");
+
+        if (user.Role == UserRole.Admin)
+        {
+            throw new UnauthorizedAccessException("This user is not authorized to view this information");
+        }
         
+        var viewUser = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == viewUserId)
+                       ?? throw new ArgumentException($"User with ID {viewUserId} not found");
+
         List<StoreInfo> userStores = await _dbContext.Stores
-            .Where(s => s.OwnerId == userId)
+            .Where(s => s.OwnerId == viewUserId)
             .Select(s => new StoreInfo(s.Id, s.Name))
             .ToListAsync();
 
