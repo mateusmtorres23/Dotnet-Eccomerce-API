@@ -23,7 +23,7 @@ public class StoreService
 
         if (user.Role != UserRole.Admin)
         {
-            throw new UnauthorizedUserException("This user is not authorized to view this information");
+            throw new UnauthorizedUserException("This user is not authorized to view this information.");
         }
 
         return await _dbContext.Stores
@@ -38,7 +38,7 @@ public class StoreService
 
         if (user.Role == UserRole.Customer)
         {
-            throw new UnauthorizedUserException("This user is not authorized to view this information");
+            throw new UnauthorizedUserException("This user is not authorized to view this information.");
         }
 
         return await _dbContext.Stores
@@ -54,15 +54,15 @@ public class StoreService
         
         if (user.Role == UserRole.Customer)
         {
-            throw new UnauthorizedUserException("This user is not authorized to view this information");
+            throw new UnauthorizedUserException("This user is not authorized to view this information.");
         }
 
         Store store = await _dbContext.Stores.SingleOrDefaultAsync(s => s.Id == storeId)
             ?? throw new ArgumentException("Store with this ID not found.");
 
-        if (store.OwnerId != userId)
+        if (user.Role == UserRole.Seller && store.OwnerId != userId)
         {
-            throw new UnauthorizedUserException("This user is not authorized to view this information");
+            throw new UnauthorizedUserException("This user is not authorized to view this information.");
         }
 
         List<ProductInfo> products = await _dbContext.Products
@@ -73,17 +73,17 @@ public class StoreService
         return new StoreInfoDetails(store.Name, user.Email, products);
     }
 
-    public async Task<CreateStoreResponse> CreateStore(CreateStoreRequest request)
+    public async Task<CreateStoreResponse> CreateStore(CreateStoreRequest request, Guid userId)
     {
-        User owner = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == request.OwnerId)
-            ?? throw new ArgumentException("This user  doesn't exist");
+        User owner = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new ArgumentException("This user doesn't exist");
 
         if (owner.Role == UserRole.Customer)
         {
             throw new UnauthorizedUserException("Only users with Seller role can create stores.");
         }
 
-        if (_dbContext.Stores.Any(s => s.Name == request.Name))
+        if (await _dbContext.Stores.AnyAsync(s => s.Name == request.Name))
         {
             throw new InvalidOperationException("A store with this name already exists.");
         }
@@ -92,7 +92,7 @@ public class StoreService
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
-            OwnerId = request.OwnerId
+            OwnerId = userId
         };
         
         _dbContext.Stores.Add(newStore);
@@ -101,10 +101,28 @@ public class StoreService
         return new CreateStoreResponse(request.Name, owner.Email);
     }
 
-    public async Task DeleteStore(Guid storeId)
+    public async Task DeleteStore(Guid storeId, Guid userId)
     {
+        User user  = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
+                     ?? throw new ArgumentException("User not found.");
+
+        if (user.Role == UserRole.Customer)
+        {
+            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
+        }
+        
         Store store = await _dbContext.Stores.SingleOrDefaultAsync(s => s.Id == storeId)
             ?? throw new ArgumentException("Store with this ID not found.");
+
+        if (store.OwnerId != userId)
+        {
+            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
+        }
+        
+        if (user.Role == UserRole.Seller && store.OwnerId != userId)
+        {
+            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
+        }
         
         _dbContext.Stores.Remove(store);
         await _dbContext.SaveChangesAsync();
@@ -117,16 +135,20 @@ public class StoreService
 
         if (user.Role == UserRole.Customer)
         {
-            throw new UnauthorizedUserException("This user is not authorized to perform this action");
+            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
         }
 
         Store store = await _dbContext.Stores.SingleOrDefaultAsync(s => s.Id == request.StoreId)
                       ?? throw new ArgumentException("Store with this ID not found.");
 
-        
-        if (_dbContext.Stores.Any(s => s.Name == request.Name && s.OwnerId == userId))
+        if (user.Role == UserRole.Seller && store.OwnerId != userId)
         {
-            throw new InvalidOperationException("User already own a store with this name.");
+            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
+        }
+        
+        if (await _dbContext.Stores.AnyAsync(s => s.Name == request.Name && s.OwnerId == userId && s.Id != store.Id))
+        {
+            throw new InvalidOperationException("User already owns a store with this name.");
         }
         
         store.Name = request.Name;
