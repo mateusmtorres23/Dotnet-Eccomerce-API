@@ -50,6 +50,11 @@ public class ProductService
             throw new UnauthorizedUserException("This user is not authorized to perform this action.");
         }
 
+        if (await _dbContext.Products.AnyAsync(p => p.Name == request.Name && p.StoreId == request.StoreId))
+        {
+            throw new InvalidOperationException("A product with this name already exists in this store.");
+        }
+
         Product newProduct = new Product
         {
             Id = Guid.NewGuid(),
@@ -85,9 +90,16 @@ public class ProductService
             throw new UnauthorizedUserException("This user is not authorized to perform this action.");
         }
         
+        if (await _dbContext.Products.AnyAsync(p => p.Name == request.Name && p.StoreId == store.Id && p.Id != productId))
+        {
+            throw new InvalidOperationException("A product with this name already exists in this store.");
+        }
+        
         product.Name = request.Name;
         product.Description = request.Description;
         product.Price = request.Price;
+        
+        await _dbContext.SaveChangesAsync();
         
         return new UpdateProductResponse(product.Name, product.Price, product.Description);
     }
