@@ -17,7 +17,7 @@ public class CartService
     public async Task<AddProductCartResponse> AddProductCart(AddProductCartRequest request, Guid userId)
     {
         Product product = await _dbContext.Products.FindAsync(request.ProductId)
-            ?? throw new NullReferenceException("Product not found");
+            ?? throw new ArgumentException("Product not found");
         
         CartItem newCartItem = new CartItem
         {
@@ -36,7 +36,10 @@ public class CartService
     {
         CartItem cartItem = await _dbContext.CartItems.FirstOrDefaultAsync(ci => 
                                 ci.ProductId == request.ProductId && ci.UserId == userId)
-            ?? throw new NullReferenceException("Cart item not found");
+            ?? throw new ArgumentException("Cart item not found");
+        
+        _dbContext.CartItems.Remove(cartItem);
+        await _dbContext.SaveChangesAsync();
     }
     
     public async Task CheckoutCart(Guid userId)
