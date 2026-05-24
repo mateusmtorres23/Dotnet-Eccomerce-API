@@ -4,7 +4,7 @@ using Testcontainers.PostgreSql;
 using Domain.Models;
 using Infra;
 
-namespace Tests;
+namespace Tests.Service;
 
 public class AppDbContextTests : IAsyncLifetime
 {
@@ -13,7 +13,6 @@ public class AppDbContextTests : IAsyncLifetime
         .WithUsername("test_user")
         .WithPassword("test_password")
         .Build();
-    
     private AppDbContext _dbContext = null!;
 
     public async Task InitializeAsync()

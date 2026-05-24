@@ -1,11 +1,10 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Domain.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Services;
 
-namespace Tests;
+namespace Tests.Service;
 
 public class AuthTests
 {
