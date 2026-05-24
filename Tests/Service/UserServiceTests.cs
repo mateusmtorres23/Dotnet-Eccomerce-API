@@ -58,6 +58,9 @@ public class UserServiceTests : IAsyncLifetime
             Password = "test_password",
             Role = UserRole.Customer
         };
+        
+        _dbContext.Users.AddRange(nonAdminUser);
+        await _dbContext.SaveChangesAsync();;
 
         Func<Task> act = async () => await _userService.ListUsers(nonAdminUser.Id);
 
@@ -144,23 +147,23 @@ public class UserServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetUserDetails_TargetUserDoesNotExists()
     {
-        var nonAdminUser = new User
+        var user = new User
         {
             Id = Guid.NewGuid(),
             Email = "test@email.com",
             Password = "test_password",
-            Role = UserRole.Customer
+            Role = UserRole.Admin
         };
 
         var targetUserId = Guid.NewGuid();
         
-        _dbContext.Users.AddRange(nonAdminUser);
+        _dbContext.Users.AddRange(user);
         await _dbContext.SaveChangesAsync();
 
-        Func<Task> act = async () => await _userService.GetUserDetails(nonAdminUser.Id, targetUserId);
+        Func<Task> act = async () => await _userService.GetUserDetails(user.Id, targetUserId);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>()
-            .WithMessage("This user is not authorized to view this information");
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("User not found");
     }
 
     [Fact]
@@ -227,6 +230,4 @@ public class UserServiceTests : IAsyncLifetime
         result.Email.Should().Be(user.Email);
         result.Role.Should().Be(UserRole.Admin);
     }
-        
-        
 }
