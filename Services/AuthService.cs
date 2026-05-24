@@ -48,11 +48,11 @@ public class AuthService
     public async Task<LoginResponse> LoginUser(LoginRequest request)
     {
         User user  = await _dbContext.Users.SingleOrDefaultAsync(x => x.Email == request.Email)
-            ?? throw new Exception("Invalid email or password.");
+            ?? throw new ArgumentException("Invalid email or password.");
 
         if (!_passwordHasher.Verify(request.Password, user.Password))
         {
-            throw new Exception("Invalid email or password.");
+            throw new ArgumentException("Invalid email or password.");
         }
 
         string token = _tokenService.GenerateToken(user);
