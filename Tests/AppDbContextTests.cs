@@ -1,55 +1,34 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Testcontainers.PostgreSql;
 using Domain.Models;
-using Infra;
+using Tests.Fixture;
 
 namespace Tests;
 
-public class AppDbContextTests : IAsyncLifetime
+public class AppDbContextTests : IntegrationTestBase
 {
-    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:17-alpine")
-        .WithDatabase("ecommerce_testdb")
-        .WithUsername("test_user")
-        .WithPassword("test_password")
-        .Build();
-    private AppDbContext _dbContext = null!;
-
-    public async Task InitializeAsync()
+    public AppDbContextTests(DatabaseFixture databaseFixture) : base(databaseFixture)
     {
-        await _dbContainer.StartAsync();
-        
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(_dbContainer.GetConnectionString())
-            .Options;
-        
-        _dbContext = new AppDbContext(options);
-        
-        await _dbContext.Database.MigrateAsync();
-    }
-    
-    public async Task DisposeAsync()
-    {
-        await _dbContext.DisposeAsync();
-        await _dbContainer.DisposeAsync();
     }
 
     [Fact]
     public async Task CheckDuplicityException()
     {
+        await ResetDatabaseAsync();
+
         User testUser = new User
         {
-            Id = Guid.NewGuid(), 
-            Email = "testemail@email.com",  
-            Password = "test_password", 
+            Id = Guid.NewGuid(),
+            Email = "testemail@email.com",
+            Password = "test_password",
             Role = UserRole.Customer,
         };
-        
+
         Store testStore = new Store
         {
-            Id = Guid.NewGuid(), 
-            Name = "TestStore", 
-            OwnerId = testUser.Id, 
+            Id = Guid.NewGuid(),
+            Name = "TestStore",
+            OwnerId = testUser.Id,
         };
 
         Product testProduct1 = new Product
@@ -60,7 +39,7 @@ public class AppDbContextTests : IAsyncLifetime
             Price = 100,
             StoreId = testStore.Id
         };
-        
+
         Product testProduct2 = new Product
         {
             Id = Guid.NewGuid(),
@@ -69,35 +48,37 @@ public class AppDbContextTests : IAsyncLifetime
             Price = 200,
             StoreId = testStore.Id
         };
-        
-        _dbContext.Users.Add(testUser);
-        _dbContext.Stores.Add(testStore);
-        _dbContext.Products.Add(testProduct1);
-        _dbContext.Products.Add(testProduct2);
-        
-        Func<Task> act = async () => await _dbContext.SaveChangesAsync();
-        
+
+        DbContext.Users.Add(testUser);
+        DbContext.Stores.Add(testStore);
+        DbContext.Products.Add(testProduct1);
+        DbContext.Products.Add(testProduct2);
+
+        Func<Task> act = async () => await DbContext.SaveChangesAsync();
+
         await act.Should().ThrowAsync<DbUpdateException>();
     }
-    
+
     [Fact]
     public async Task CheckCascadeDeletion()
     {
+        await ResetDatabaseAsync();
+
         User testUser = new User
         {
-            Id = Guid.NewGuid(), 
-            Email = "testemail@email.com",  
-            Password = "test_password", 
+            Id = Guid.NewGuid(),
+            Email = "testemail@email.com",
+            Password = "test_password",
             Role = UserRole.Customer,
         };
-        
+
         Store testStore = new Store
         {
-            Id = Guid.NewGuid(), 
-            Name = "TestStore", 
+            Id = Guid.NewGuid(),
+            Name = "TestStore",
             OwnerId = testUser.Id,
         };
-        
+
         Product testProduct = new Product
         {
             Id = Guid.NewGuid(),
@@ -106,22 +87,22 @@ public class AppDbContextTests : IAsyncLifetime
             Price = 100,
             StoreId = testStore.Id
         };
-        
-        _dbContext.Users.Add(testUser);
-        _dbContext.Stores.Add(testStore);
-        _dbContext.Products.Add(testProduct);
-        
-        await _dbContext.SaveChangesAsync();
-        
-        _dbContext.ChangeTracker.Clear();
-        
-        var storeToDelete = await _dbContext.Stores.FindAsync(testStore.Id);
-        
-        _dbContext.Stores.Remove(storeToDelete!);
-        await _dbContext.SaveChangesAsync();
-        
-        var productStillExists = await _dbContext.Products.AnyAsync(p => p.Id == testProduct.Id);
-        
+
+        DbContext.Users.Add(testUser);
+        DbContext.Stores.Add(testStore);
+        DbContext.Products.Add(testProduct);
+
+        await DbContext.SaveChangesAsync();
+
+        DbContext.ChangeTracker.Clear();
+
+        var storeToDelete = await DbContext.Stores.FindAsync(testStore.Id);
+
+        DbContext.Stores.Remove(storeToDelete!);
+        await DbContext.SaveChangesAsync();
+
+        var productStillExists = await DbContext.Products.AnyAsync(p => p.Id == testProduct.Id);
+
         productStillExists.Should().BeFalse();
     }
 }

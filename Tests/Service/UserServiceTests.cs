@@ -1,49 +1,31 @@
 ﻿using FluentAssertions;
-using Testcontainers.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using Infra;
 using Services;
 using Domain.Models;
 using Domain.DTOs.User;
+using Tests.Fixture;
+
 namespace Tests.Service;
 
-public class UserServiceTests : IAsyncLifetime
+public class UserServiceTests : IntegrationTestBase
 {
-    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:17-alpine")
-        .WithDatabase("ecommerce_testdb")
-        .WithUsername("test_user")
-        .WithPassword("test_password")
-        .Build();
-    private AppDbContext _dbContext;
-    private UserService _userService;
+    private readonly UserService _userService;
 
-    public async Task InitializeAsync()
+    public UserServiceTests(DatabaseFixture databaseFixture) : base(databaseFixture)
     {
-        await _dbContainer.StartAsync();
-        
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(_dbContainer.GetConnectionString())
-            .Options;
-        
-        _dbContext = new AppDbContext(options);
-        
-        await _dbContext.Database.MigrateAsync();
-        _userService = new UserService(_dbContext);
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _dbContext.DisposeAsync();
-        await _dbContainer.DisposeAsync();
+        _userService = new UserService(DbContext);
     }
 
     [Fact]
     public async Task ListUsers_UserDoesNotExists()
     {
+        await ResetDatabaseAsync();
+        
         var NonExistentUserId = Guid.NewGuid();
-        
+
         Func<Task> act = async () => await _userService.ListUsers(NonExistentUserId);
-        
+
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("User not found");
     }
@@ -51,6 +33,8 @@ public class UserServiceTests : IAsyncLifetime
     [Fact]
     public async Task ListUsers_UserIsNotAdmin()
     {
+        await ResetDatabaseAsync();
+        
         var nonAdminUser = new User
         {
             Id = Guid.NewGuid(),
@@ -58,9 +42,9 @@ public class UserServiceTests : IAsyncLifetime
             Password = "test_password",
             Role = UserRole.Customer
         };
-        
-        _dbContext.Users.AddRange(nonAdminUser);
-        await _dbContext.SaveChangesAsync();;
+
+        DbContext.Users.AddRange(nonAdminUser);
+        await DbContext.SaveChangesAsync();
 
         Func<Task> act = async () => await _userService.ListUsers(nonAdminUser.Id);
 
@@ -71,6 +55,8 @@ public class UserServiceTests : IAsyncLifetime
     [Fact]
     public async Task ListUsers_ReturnListOfUsers()
     {
+        await ResetDatabaseAsync();
+        
         var adminUser = new User
         {
             Id = Guid.NewGuid(),
@@ -86,12 +72,12 @@ public class UserServiceTests : IAsyncLifetime
             Password = "standard_password",
             Role = UserRole.Customer
         };
-        
-        _dbContext.Users.AddRange(adminUser, standardUser);
-        await _dbContext.SaveChangesAsync();
-        
+
+        DbContext.Users.AddRange(adminUser, standardUser);
+        await DbContext.SaveChangesAsync();
+
         var result = await _userService.ListUsers(adminUser.Id);
-        
+
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
         result.Should().Contain(u => u.Id == adminUser.Id && u.Email == adminUser.Email);
@@ -101,6 +87,8 @@ public class UserServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetUserDetails_UserDoesNotExists()
     {
+        await ResetDatabaseAsync();
+        
         var viewUserId = Guid.NewGuid();
         var nonExistentUser = new User
         {
@@ -119,6 +107,8 @@ public class UserServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetUserDetails_UserIsNotAdmin()
     {
+        await ResetDatabaseAsync();
+        
         var nonAdminUser = new User
         {
             Id = Guid.NewGuid(),
@@ -126,7 +116,7 @@ public class UserServiceTests : IAsyncLifetime
             Password = "test_password",
             Role = UserRole.Customer
         };
-        
+
         var standardUser = new User()
         {
             Id = Guid.NewGuid(),
@@ -134,9 +124,9 @@ public class UserServiceTests : IAsyncLifetime
             Password = "standard_password",
             Role = UserRole.Customer
         };
-        
-        _dbContext.Users.AddRange(nonAdminUser, standardUser);
-        await _dbContext.SaveChangesAsync();
+
+        DbContext.Users.AddRange(nonAdminUser, standardUser);
+        await DbContext.SaveChangesAsync();
 
         Func<Task> act = async () => await _userService.GetUserDetails(nonAdminUser.Id, standardUser.Id);
 
@@ -147,6 +137,8 @@ public class UserServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetUserDetails_TargetUserDoesNotExists()
     {
+        await ResetDatabaseAsync();
+        
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -156,9 +148,9 @@ public class UserServiceTests : IAsyncLifetime
         };
 
         var targetUserId = Guid.NewGuid();
-        
-        _dbContext.Users.AddRange(user);
-        await _dbContext.SaveChangesAsync();
+
+        DbContext.Users.AddRange(user);
+        await DbContext.SaveChangesAsync();
 
         Func<Task> act = async () => await _userService.GetUserDetails(user.Id, targetUserId);
 
@@ -169,6 +161,8 @@ public class UserServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetUserDetails_ReturnUserDetails()
     {
+        await ResetDatabaseAsync();
+        
         var adminUser = new User
         {
             Id = Guid.NewGuid(),
@@ -176,7 +170,7 @@ public class UserServiceTests : IAsyncLifetime
             Password = "test_password",
             Role = UserRole.Admin
         };
-        
+
         var standardUser = new User()
         {
             Id = Guid.NewGuid(),
@@ -184,12 +178,12 @@ public class UserServiceTests : IAsyncLifetime
             Password = "standard_password",
             Role = UserRole.Customer
         };
-        
-        _dbContext.Users.AddRange(adminUser, standardUser);
-        await _dbContext.SaveChangesAsync();
+
+        DbContext.Users.AddRange(adminUser, standardUser);
+        await DbContext.SaveChangesAsync();
 
         var result = await _userService.GetUserDetails(adminUser.Id, standardUser.Id);
-        
+
         result.Should().NotBeNull();
         result.Id.Should().Be(standardUser.Id);
         result.Email.Should().Be(standardUser.Email);
@@ -201,18 +195,22 @@ public class UserServiceTests : IAsyncLifetime
     [Fact]
     public async Task UpgradeRole_TargetUserDoesNotExists()
     {
-        var userId =  Guid.NewGuid();
+        await ResetDatabaseAsync();
+        
+        var userId = Guid.NewGuid();
         var request = new UpgradeRoleRequest(userId, UserRole.Admin);
-        
+
         Func<Task> act = async () => await _userService.UpgradeRole(request);
-        
+
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("User not found");
     }
-    
+
     [Fact]
     public async Task UpgradeRole_UpgradeUserRole()
     {
+        await ResetDatabaseAsync();
+        
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -220,8 +218,8 @@ public class UserServiceTests : IAsyncLifetime
             Password = "test_password",
             Role = UserRole.Customer
         };
-        _dbContext.Users.AddRange(user);
-        await _dbContext.SaveChangesAsync();
+        DbContext.Users.AddRange(user);
+        await DbContext.SaveChangesAsync();
 
         var request = new UpgradeRoleRequest(user.Id, UserRole.Admin);
         var result = await _userService.UpgradeRole(request);

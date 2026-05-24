@@ -18,6 +18,11 @@ public class ProductService
 
     public async Task<List<ProductInfo>> ReadStoreProduct(Guid storeId)
     {
+        if (await _dbContext.Stores.AnyAsync(s => s.Id == storeId))
+        {
+            throw new ArgumentException("This store does not exist.");
+        }
+
         return await _dbContext.Products
             .Where(p => p.StoreId == storeId)
             .Select(p => new ProductInfo(p.Id, p.Name, p.Price))
@@ -26,6 +31,11 @@ public class ProductService
 
     public async Task<ProductInfoDetails> ReadProductDetails(Guid productId)
     {
+        if (await _dbContext.Products.AnyAsync(s => s.Id == productId))
+        {
+            throw new ArgumentException("This product does not exist.");
+        }
+        
         return await _dbContext.Products
             .Where(p => p.Id == productId)
             .Select(p => new ProductInfoDetails(p.Name, p.Price, p.Description))
@@ -52,7 +62,7 @@ public class ProductService
 
         if (await _dbContext.Products.AnyAsync(p => p.Name == request.Name && p.StoreId == request.StoreId))
         {
-            throw new InvalidOperationException("A product with this name already exists in this store.");
+            throw new ArgumentException("A product with this name already exists in this store.");
         }
 
         Product newProduct = new Product
