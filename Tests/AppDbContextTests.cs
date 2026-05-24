@@ -4,7 +4,7 @@ using Testcontainers.PostgreSql;
 using Domain.Models;
 using Infra;
 
-namespace Tests.Service;
+namespace Tests;
 
 public class AppDbContextTests : IAsyncLifetime
 {
