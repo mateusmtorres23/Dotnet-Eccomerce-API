@@ -20,7 +20,7 @@ public class UserService
         User user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == userId)
             ?? throw new ArgumentException($"User not found");
 
-        if (user.Role == UserRole.Admin)
+        if (user.Role != UserRole.Admin)
         {
             throw new UnauthorizedAccessException("This user is not authorized to view this information");
         }
@@ -35,13 +35,13 @@ public class UserService
         User user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == userId)
                     ?? throw new ArgumentException($"User not found");
 
-        if (user.Role == UserRole.Admin)
+        if (user.Role != UserRole.Admin)
         {
             throw new UnauthorizedAccessException("This user is not authorized to view this information");
         }
         
         var viewUser = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == viewUserId)
-                       ?? throw new ArgumentException($"User with ID {viewUserId} not found");
+                       ?? throw new ArgumentException($"User not found");
 
         List<StoreInfo> userStores = await _dbContext.Stores
             .Where(s => s.OwnerId == viewUserId)
@@ -54,7 +54,7 @@ public class UserService
     public async Task<UpgradeRoleResponse> UpgradeRole (UpgradeRoleRequest request)
     {
         User user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == request.userId)
-            ?? throw new ArgumentException($"User with id {request.userId} not found");
+            ?? throw new ArgumentException($"User not found");
         
         user.Role = request.Role;
         
