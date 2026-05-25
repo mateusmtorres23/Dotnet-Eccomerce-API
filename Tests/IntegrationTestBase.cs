@@ -1,35 +1,48 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Data.Common;
+using System.Data;
+using Microsoft.EntityFrameworkCore;
+using Respawn;
 using Infra;
 using Tests.Fixture;
 
 namespace Tests;
 
 [Collection("Database collection")]
-public abstract class IntegrationTestBase
+public abstract class IntegrationTestBase : IAsyncLifetime
 {
     protected readonly AppDbContext DbContext;
+    private Respawner _respawner = default!;
+    private DbConnection _connection = default!;
 
     protected IntegrationTestBase(DatabaseFixture databaseFixture)
     {
         DbContext = databaseFixture.GetDbContext();
     }
 
+    public async Task InitializeAsync()
+    {
+        _connection = DbContext.Database.GetDbConnection();
+
+        if (_connection.State != ConnectionState.Open)
+        {
+            await _connection.OpenAsync();
+        }
+
+        _respawner ??= await Respawner.CreateAsync(_connection, new RespawnerOptions
+        {
+            DbAdapter = DbAdapter.Postgres,
+            SchemasToInclude = new[] { "public" }
+        });
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
     protected async Task ResetDatabaseAsync()
     {
-        await DbContext.Database.ExecuteSqlRawAsync("SET session_replication_role = 'replica'");
-
-        try
-        {
-            await DbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"CartItems\" CASCADE");
-            await DbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Products\" CASCADE");
-            await DbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Stores\" CASCADE");
-            await DbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Users\" CASCADE");
-        }
-        finally
-        {
-            await DbContext.Database.ExecuteSqlRawAsync("SET session_replication_role = 'origin'");
-        }
-
+        await _respawner.ResetAsync(_connection);
         DbContext.ChangeTracker.Clear();
     }
 }
