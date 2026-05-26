@@ -22,9 +22,9 @@ public class AuthServiceTests : IntegrationTestBase
     {
         var myConfiguration = new Dictionary<string, string>()
         {
-            {"Jwt:Key", TestKey},
-            {"Jwt:Issuer", "test-issuer"},
-            {"Jwt:Audience", "test-audience"},
+            {"JwtSettings:Key", TestKey},
+            {"JwtSettings:Issuer", "test-issuer"},
+            {"JwtSettings:Audience", "test-audience"},
             {"Jwt:ExpireMinutes", "60"}
         };
 
@@ -119,6 +119,7 @@ public class AuthServiceTests : IntegrationTestBase
         await ResetDatabaseAsync();
         
         var request = new LoginRequest("user@test.com", "wrongpassword");
+        
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -131,7 +132,7 @@ public class AuthServiceTests : IntegrationTestBase
 
         Func<Task> act = async () => await _authService.LoginUser(request);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+        await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("Invalid email or password.");
     }
 
