@@ -33,7 +33,7 @@ public class ProductService
     {
         if (await _dbContext.Products.AnyAsync(s => s.Id == productId))
         {
-            throw new ArgumentException("This product does not exist.");
+            throw new ArgumentException("Product not found.");
         }
         
         return await _dbContext.Products
