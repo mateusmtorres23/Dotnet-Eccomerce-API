@@ -126,7 +126,7 @@ public class DeleteProductTests : IntegrationTestBase
     {
         await ResetDatabaseAsync();
         
-        var user = new User
+        var admin = new User
         {
             Id = Guid.NewGuid(),
             Email = "admin@email.com",
@@ -134,14 +134,22 @@ public class DeleteProductTests : IntegrationTestBase
             Role = UserRole.Admin
         };
 
-        DbContext.Users.AddRange(user);
+        var owner = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "owner@email.com",
+            Password = "test_password",
+            Role = UserRole.Seller
+        };
+
+        DbContext.Users.AddRange(admin, owner);
         await DbContext.SaveChangesAsync();
 
         var store = new Store
         {
             Id = Guid.NewGuid(),
             Name = "Store A",
-            OwnerId = Guid.NewGuid()
+            OwnerId = owner.Id
         };
 
         var product = new Product
@@ -152,12 +160,12 @@ public class DeleteProductTests : IntegrationTestBase
             Price = 100,
             StoreId = store.Id
         };
-
+        
         DbContext.Stores.AddRange(store);
         DbContext.Products.AddRange(product);
         await DbContext.SaveChangesAsync();
 
-        await _productService.DeleteProduct(product.Id, user.Id);
+        await _productService.DeleteProduct(product.Id, admin.Id);
 
         var deletedProduct = await DbContext.Products.FindAsync(product.Id);
         deletedProduct.Should().BeNull();
