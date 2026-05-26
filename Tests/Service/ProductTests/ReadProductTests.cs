@@ -30,12 +30,20 @@ public class ReadProductTests : IntegrationTestBase
     public async Task ReadProducts_ReturnStoreProducts()
     {
         await ResetDatabaseAsync();
+
+        var owner = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "owner@email.com",
+            Password = "test_password",
+            Role = UserRole.Seller
+        };
         
         var store = new Store
         {
             Id = Guid.NewGuid(),
             Name = "Store A",
-            OwnerId = Guid.NewGuid()
+            OwnerId = owner.Id
         };
 
         var product = new Product
@@ -74,12 +82,20 @@ public class ReadProductTests : IntegrationTestBase
     public async Task ReadProductDetails_ReturnProductDetails()
     {
         await ResetDatabaseAsync();
+
+        var owner = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "owner@email.com",
+            Password = "test_password",
+            Role = UserRole.Seller
+        };
         
         var store = new Store
         {
             Id = Guid.NewGuid(),
             Name = "Store A",
-            OwnerId = Guid.NewGuid()
+            OwnerId = owner.Id
         };
 
         var product = new Product

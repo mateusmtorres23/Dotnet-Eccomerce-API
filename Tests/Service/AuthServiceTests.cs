@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Domain.Models;
 using Domain.DTOs.Auth;
 using Domain.Exceptions;
-using Services;
+ using Services;
 using Tests.Fixture;
 
 namespace Tests.Service;
@@ -28,7 +28,7 @@ public class AuthServiceTests : IntegrationTestBase
             {"Jwt:ExpireMinutes", "60"}
         };
 
-        var configuration = new ConfigurationBuilder()
+        IConfiguration configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(myConfiguration)
             .Build();
 

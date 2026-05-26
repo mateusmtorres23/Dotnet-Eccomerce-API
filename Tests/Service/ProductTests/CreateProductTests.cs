@@ -30,7 +30,7 @@ public class CreateProductTests : IntegrationTestBase
             Role = UserRole.Customer
         };
 
-        DbContext.Users.Add(user);
+        DbContext.Users.AddRange(user);
         await DbContext.SaveChangesAsync();
 
         var request = new CreateProductRequest("Product A", "Description", 100, Guid.NewGuid());
@@ -51,11 +51,26 @@ public class CreateProductTests : IntegrationTestBase
             Password = "test_password",
             Role = UserRole.Seller
         };
+        
+        var owner = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "owner@email.com",
+            Password = "owner_password",
+            Role = UserRole.Seller
+        };
+        
+        var store = new Store
+        {
+            Id = Guid.NewGuid(),
+            Name = "Store A",
+            OwnerId = owner.Id
+        };
 
-        DbContext.Users.AddRange(user);
+        DbContext.Users.AddRange(user, owner);
         await DbContext.SaveChangesAsync();
 
-        var request = new CreateProductRequest("Product A", "Description", 100, Guid.NewGuid());
+        var request = new CreateProductRequest("Product A", "Description", 100, store.Id);
         Func<Task> act = async () => await _productService.CreateProduct(request, user.Id);
 
         await act.Should().ThrowAsync<UnauthorizedUserException>()
@@ -161,15 +176,16 @@ public class CreateProductTests : IntegrationTestBase
     {
         await ResetDatabaseAsync();
         
-        var user = new User { Id = Guid.NewGuid(), Email = "admin@test.com", Password = "pwd", Role = UserRole.Admin };
-        var store = new Store { Id = Guid.NewGuid(), Name = "Store", OwnerId = Guid.NewGuid() };
+        var admin = new User { Id = Guid.NewGuid(), Email = "admin@test.com", Password = "pwd", Role = UserRole.Admin };
+        var owner = new User { Id = Guid.NewGuid(), Email = "owner@test.com", Password = "pwd", Role = UserRole.Seller };
+        var store = new Store { Id = Guid.NewGuid(), Name = "Store", OwnerId = owner.Id };
 
-        DbContext.Users.Add(user);
-        DbContext.Stores.Add(store);
+        DbContext.Users.AddRange(admin);
+        DbContext.Stores.AddRange(store);
         await DbContext.SaveChangesAsync();
 
         var request = new CreateProductRequest("Product A", "Description", 100, store.Id);
-        var result = await _productService.CreateProduct(request, user.Id);
+        var result = await _productService.CreateProduct(request, admin.Id);
 
         result.Should().NotBeNull();
         result.Name.Should().Be("Product A");

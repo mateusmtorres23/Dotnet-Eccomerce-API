@@ -40,7 +40,7 @@ public class DeleteProductTests : IntegrationTestBase
             Role = UserRole.Customer
         };
 
-        DbContext.Users.Add(user);
+        DbContext.Users.AddRange(user);
         await DbContext.SaveChangesAsync();
 
         var productId = Guid.NewGuid();
@@ -62,7 +62,7 @@ public class DeleteProductTests : IntegrationTestBase
             Role = UserRole.Admin
         };
 
-        DbContext.Users.Add(user);
+        DbContext.Users.AddRange(user);
         await DbContext.SaveChangesAsync();
 
         Func<Task> act = async () => await _productService.DeleteProduct(Guid.NewGuid(), user.Id);
@@ -111,8 +111,8 @@ public class DeleteProductTests : IntegrationTestBase
             StoreId = store.Id
         };
 
-        DbContext.Stores.Add(store);
-        DbContext.Products.Add(product);
+        DbContext.Stores.AddRange(store);
+        DbContext.Products.AddRange(product);
         await DbContext.SaveChangesAsync();
 
         Func<Task> act = async () => await _productService.DeleteProduct(product.Id, seller.Id);
@@ -134,7 +134,7 @@ public class DeleteProductTests : IntegrationTestBase
             Role = UserRole.Admin
         };
 
-        DbContext.Users.Add(user);
+        DbContext.Users.AddRange(user);
         await DbContext.SaveChangesAsync();
 
         var store = new Store
@@ -153,8 +153,8 @@ public class DeleteProductTests : IntegrationTestBase
             StoreId = store.Id
         };
 
-        DbContext.Stores.Add(store);
-        DbContext.Products.Add(product);
+        DbContext.Stores.AddRange(store);
+        DbContext.Products.AddRange(product);
         await DbContext.SaveChangesAsync();
 
         await _productService.DeleteProduct(product.Id, user.Id);
@@ -176,7 +176,7 @@ public class DeleteProductTests : IntegrationTestBase
             Role = UserRole.Seller
         };
 
-        DbContext.Users.Add(user);
+        DbContext.Users.AddRange(user);
         await DbContext.SaveChangesAsync();
 
         var store = new Store
@@ -195,8 +195,8 @@ public class DeleteProductTests : IntegrationTestBase
             StoreId = store.Id
         };
 
-        DbContext.Stores.Add(store);
-        DbContext.Products.Add(product);
+        DbContext.Stores.AddRange(store);
+        DbContext.Products.AddRange(product);
         await DbContext.SaveChangesAsync();
 
         await _productService.DeleteProduct(product.Id, user.Id);

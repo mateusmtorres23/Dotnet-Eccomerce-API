@@ -42,7 +42,7 @@ public class UpdateProductTests : IntegrationTestBase
             Role = UserRole.Customer
         };
 
-        DbContext.Users.Add(user);
+        DbContext.Users.AddRange(user);
         await DbContext.SaveChangesAsync();
 
         var productId = Guid.NewGuid();
@@ -65,7 +65,7 @@ public class UpdateProductTests : IntegrationTestBase
             Role = UserRole.Admin
         };
 
-        DbContext.Users.Add(user);
+        DbContext.Users.AddRange(user);
         await DbContext.SaveChangesAsync();
 
         var request = new UpdateProductRequest("Updated Product", "Updated Description", 150);
@@ -115,8 +115,8 @@ public class UpdateProductTests : IntegrationTestBase
             StoreId = store.Id
         };
 
-        DbContext.Stores.Add(store);
-        DbContext.Products.Add(product);
+        DbContext.Stores.AddRange(store);
+        DbContext.Products.AddRange(product);
         await DbContext.SaveChangesAsync();
 
         var request = new UpdateProductRequest("Updated Product", "Updated Description", 150);
@@ -139,14 +139,14 @@ public class UpdateProductTests : IntegrationTestBase
             Role = UserRole.Admin
         };
 
-        DbContext.Users.Add(user);
+        DbContext.Users.AddRange(user);
         await DbContext.SaveChangesAsync();
 
         var store = new Store
         {
             Id = Guid.NewGuid(),
             Name = "Store A",
-            OwnerId = Guid.NewGuid()
+            OwnerId = user.Id
         };
 
         var product1 = new Product
@@ -167,7 +167,7 @@ public class UpdateProductTests : IntegrationTestBase
             StoreId = store.Id
         };
 
-        DbContext.Stores.Add(store);
+        DbContext.Stores.AddRange(store);
         DbContext.Products.AddRange(product1, product2);
         await DbContext.SaveChangesAsync();
 
@@ -183,22 +183,30 @@ public class UpdateProductTests : IntegrationTestBase
     {
         await ResetDatabaseAsync();
 
-        var user = new User
+        var admin = new User
         {
             Id = Guid.NewGuid(),
             Email = "admin@email.com",
             Password = "test_password",
             Role = UserRole.Admin
         };
+        
+        var owner = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "owner@email.com",
+            Password = "test_password",
+            Role = UserRole.Seller
+        };
 
-        DbContext.Users.Add(user);
+        DbContext.Users.AddRange(admin, owner);
         await DbContext.SaveChangesAsync();
 
         var store = new Store
         {
             Id = Guid.NewGuid(),
             Name = "Store A",
-            OwnerId = Guid.NewGuid()
+            OwnerId = owner.Id
         };
 
         var product = new Product
@@ -210,12 +218,12 @@ public class UpdateProductTests : IntegrationTestBase
             StoreId = store.Id
         };
 
-        DbContext.Stores.Add(store);
-        DbContext.Products.Add(product);
+        DbContext.Stores.AddRange(store);
+        DbContext.Products.AddRange(product);
         await DbContext.SaveChangesAsync();
 
         var request = new UpdateProductRequest("Updated Product", "Updated Description", 150);
-        var result = await _productService.UpdateProduct(request, user.Id, product.Id);
+        var result = await _productService.UpdateProduct(request, admin.Id, product.Id);
 
         result.Should().NotBeNull();
         result.Name.Should().Be("Updated Product");
@@ -240,7 +248,7 @@ public class UpdateProductTests : IntegrationTestBase
             Role = UserRole.Seller
         };
 
-        DbContext.Users.Add(user);
+        DbContext.Users.AddRange(user);
         await DbContext.SaveChangesAsync();
 
         var store = new Store
@@ -259,8 +267,8 @@ public class UpdateProductTests : IntegrationTestBase
             StoreId = store.Id
         };
 
-        DbContext.Stores.Add(store);
-        DbContext.Products.Add(product);
+        DbContext.Stores.AddRange(store);
+        DbContext.Products.AddRange(product);
         await DbContext.SaveChangesAsync();
 
         var request = new UpdateProductRequest("Updated Product", "Updated Description", 200);
