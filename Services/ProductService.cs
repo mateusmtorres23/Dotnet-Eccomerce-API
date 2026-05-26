@@ -18,9 +18,9 @@ public class ProductService
 
     public async Task<List<ProductInfo>> ReadStoreProduct(Guid storeId)
     {
-        if (await _dbContext.Stores.AnyAsync(s => s.Id == storeId))
+        if (!await _dbContext.Stores.AnyAsync(s => s.Id == storeId))
         {
-            throw new ArgumentException("This store does not exist.");
+            throw new ArgumentException("Store not found");
         }
 
         return await _dbContext.Products
@@ -31,7 +31,7 @@ public class ProductService
 
     public async Task<ProductInfoDetails> ReadProductDetails(Guid productId)
     {
-        if (await _dbContext.Products.AnyAsync(s => s.Id == productId))
+        if (!await _dbContext.Products.AnyAsync(s => s.Id == productId))
         {
             throw new ArgumentException("Product not found.");
         }
