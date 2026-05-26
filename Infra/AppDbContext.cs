@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.HasIndex(u => u.Email).IsUnique();
         });
 
         modelBuilder.Entity<Store>(entity =>
