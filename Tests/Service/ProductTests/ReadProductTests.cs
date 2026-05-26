@@ -23,7 +23,7 @@ public class ReadProductTests : IntegrationTestBase
         Func<Task> act = async () => await _productService.ReadStoreProduct(storeId);
 
         await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("This store does not exist.");
+            .WithMessage("Store not found");
     }
 
     [Fact]
@@ -54,7 +54,8 @@ public class ReadProductTests : IntegrationTestBase
             Price = 100,
             StoreId = store.Id
         };
-
+        
+        DbContext.Users.AddRange(owner);
         DbContext.Stores.AddRange(store);
         DbContext.Products.AddRange(product);
         await DbContext.SaveChangesAsync();
@@ -75,7 +76,7 @@ public class ReadProductTests : IntegrationTestBase
         Func<Task> act = async () => await _productService.ReadProductDetails(productId);
 
         await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("This product does not exist.");
+            .WithMessage("Product not found.");
     }
 
     [Fact]
@@ -106,7 +107,8 @@ public class ReadProductTests : IntegrationTestBase
             Price = 100,
             StoreId = store.Id
         };
-
+        
+        DbContext.Users.AddRange(owner);
         DbContext.Stores.AddRange(store);
         DbContext.Products.AddRange(product);
         await DbContext.SaveChangesAsync();
