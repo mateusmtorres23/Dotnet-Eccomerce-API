@@ -36,7 +36,7 @@ public class CartService
     {
         CartItem cartItem = await _dbContext.CartItems.FirstOrDefaultAsync(ci => 
                                 ci.ProductId == request.ProductId && ci.UserId == userId)
-            ?? throw new ArgumentException("Cart item not found");
+            ?? throw new ArgumentException("Product not found or not in cart");
         
         _dbContext.CartItems.Remove(cartItem);
         await _dbContext.SaveChangesAsync();

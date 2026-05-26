@@ -58,34 +58,39 @@ public class StoreService
         }
 
         Store store = await _dbContext.Stores.SingleOrDefaultAsync(s => s.Id == storeId)
-            ?? throw new ArgumentException("Store with this ID not found.");
+            ?? throw new ArgumentException("Store not found.");
 
         if (user.Role == UserRole.Seller && store.OwnerId != userId)
         {
             throw new UnauthorizedUserException("This user is not authorized to view this information.");
         }
+        
+        var ownerEmail =  await _dbContext.Users.Where(u => u.Id == userId)
+            .Select(u => u.Email)
+            .FirstOrDefaultAsync()
+            ?? throw new ArgumentException("User not found.");
 
         List<ProductInfo> products = await _dbContext.Products
             .Where(p => p.StoreId == storeId)
             .Select(p => new ProductInfo(p.Id, p.Name, p.Price))
             .ToListAsync();
             
-        return new StoreInfoDetails(store.Name, user.Email, products);
+        return new StoreInfoDetails(store.Name, ownerEmail, products);
     }
 
     public async Task<CreateStoreResponse> CreateStore(CreateStoreRequest request, Guid userId)
     {
         User owner = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
-            ?? throw new ArgumentException("This user doesn't exist");
+            ?? throw new ArgumentException("User not found");
 
         if (owner.Role == UserRole.Customer)
         {
-            throw new UnauthorizedUserException("Only users with Seller role can create stores.");
+            throw new UnauthorizedUserException("This user is not authorized to view this information.");
         }
 
         if (await _dbContext.Stores.AnyAsync(s => s.Name == request.Name))
         {
-            throw new InvalidOperationException("A store with this name already exists.");
+            throw new ArgumentException("A store with this name already exists.");
         }
 
         Store newStore = new Store
@@ -112,7 +117,7 @@ public class StoreService
         }
         
         Store store = await _dbContext.Stores.SingleOrDefaultAsync(s => s.Id == storeId)
-            ?? throw new ArgumentException("Store with this ID not found.");
+            ?? throw new ArgumentException("Store  not found.");
 
         if (store.OwnerId != userId)
         {
