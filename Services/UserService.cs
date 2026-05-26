@@ -48,7 +48,7 @@ public class UserService
             .Select(s => new StoreInfo(s.Id, s.Name))
             .ToListAsync();
 
-        return new UserInfoDetails(user.Id, user.Email, user.Role, userStores);
+        return new UserInfoDetails(viewUser.Id, user.Email, user.Role, userStores);
     }
 
     public async Task<UpgradeRoleResponse> UpgradeRole (UpgradeRoleRequest request)
