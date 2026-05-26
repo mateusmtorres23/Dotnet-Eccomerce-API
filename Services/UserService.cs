@@ -43,12 +43,12 @@ public class UserService
         var viewUser = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == viewUserId)
                        ?? throw new ArgumentException($"User not found");
 
-        List<StoreInfo> userStores = await _dbContext.Stores
+        List<StoreInfo> viewUserStores = await _dbContext.Stores
             .Where(s => s.OwnerId == viewUserId)
             .Select(s => new StoreInfo(s.Id, s.Name))
             .ToListAsync();
 
-        return new UserInfoDetails(viewUser.Id, user.Email, user.Role, userStores);
+        return new UserInfoDetails(viewUser.Id, viewUser.Email, viewUser.Role, viewUserStores);
     }
 
     public async Task<UpgradeRoleResponse> UpgradeRole (UpgradeRoleRequest request)
