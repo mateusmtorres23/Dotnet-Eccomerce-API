@@ -68,6 +68,7 @@ public class CreateProductTests : IntegrationTestBase
         };
 
         DbContext.Users.AddRange(user, owner);
+        DbContext.Stores.AddRange(store);
         await DbContext.SaveChangesAsync();
 
         var request = new CreateProductRequest("Product A", "Description", 100, store.Id);
@@ -117,7 +118,12 @@ public class CreateProductTests : IntegrationTestBase
         DbContext.Users.AddRange(user);
         await DbContext.SaveChangesAsync();
 
-        var storeId = Guid.NewGuid();
+        var store = new Store
+        {
+            Id = Guid.NewGuid(),
+            Name = "Store A",
+            OwnerId = user.Id
+        };
 
         var product = new Product()
         {
@@ -125,12 +131,16 @@ public class CreateProductTests : IntegrationTestBase
             Name = "Product A",
             Description = "Description",
             Price = 100,
-            StoreId = storeId
+            StoreId = store.Id
         };
+        
+        DbContext.Stores.AddRange(store);
+        DbContext.Products.AddRange(product);
+        await DbContext.SaveChangesAsync();
 
-        var request = new CreateProductRequest("Product A", "Description", 100, Guid.NewGuid());
+        var request = new CreateProductRequest("Product A", "Description", 100, store.Id);
 
-        Func<Task> act = async () => await _productService.CreateProduct(request, product.Id);
+        Func<Task> act = async () => await _productService.CreateProduct(request, user.Id);
 
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("A product with this name already exists in this store.");
@@ -180,7 +190,7 @@ public class CreateProductTests : IntegrationTestBase
         var owner = new User { Id = Guid.NewGuid(), Email = "owner@test.com", Password = "pwd", Role = UserRole.Seller };
         var store = new Store { Id = Guid.NewGuid(), Name = "Store", OwnerId = owner.Id };
 
-        DbContext.Users.AddRange(admin);
+        DbContext.Users.AddRange(admin, owner);
         DbContext.Stores.AddRange(store);
         await DbContext.SaveChangesAsync();
 
