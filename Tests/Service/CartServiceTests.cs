@@ -87,7 +87,7 @@ public class CartServiceTests : IntegrationTestBase
         
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("Product not found or not in cart");
-    }""
+    }
 
     [Fact]
     public async Task RemoveProduct_RemoveCartItem()
