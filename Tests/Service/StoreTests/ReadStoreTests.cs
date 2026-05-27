@@ -28,6 +28,8 @@ public class ReadStoreTests : IntegrationTestBase
     [Fact]
     public async Task ListAllStores_UserNotAdmin()
     {
+        await ResetDatabaseAsync();
+        
         var notAdmin = new User
         {
             Id = Guid.NewGuid(),
@@ -48,6 +50,8 @@ public class ReadStoreTests : IntegrationTestBase
     [Fact]
     public async Task ListAllStores_ReturnListOfStores()
     {
+        await ResetDatabaseAsync();
+        
         var admin = new User
         {
             Id = Guid.NewGuid(),
@@ -94,6 +98,8 @@ public class ReadStoreTests : IntegrationTestBase
     [Fact]
     public async Task ListOwnStores_UserIsCustomer()
     {
+        await ResetDatabaseAsync();    
+        
         var customer = new User
         {
             Id = Guid.NewGuid(),
@@ -115,6 +121,8 @@ public class ReadStoreTests : IntegrationTestBase
     [Fact]
     public async Task ListOwnStores_ReturnListOfOwnStores()
     {
+        await ResetDatabaseAsync();
+        
         var owner = new User
         {
             Id = Guid.NewGuid(),

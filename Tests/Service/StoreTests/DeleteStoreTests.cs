@@ -39,15 +39,25 @@ public class DeleteStoreTests : IntegrationTestBase
             Password = "pwd",
             Role = UserRole.Customer
         };
-        DbContext.Users.Add(customer);
+        
+        var owner = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "owner@email.com",
+            Password = "pwd",
+            Role = UserRole.Seller
+        };
+        
+        DbContext.Users.AddRange(customer, owner);
         await DbContext.SaveChangesAsync();
-
+        
         var store = new Store
         {
             Id = Guid.NewGuid(),
             Name = "StoreToDelete",
-            OwnerId = Guid.NewGuid()
+            OwnerId = owner.Id
         };
+        
         DbContext.Stores.Add(store);
         await DbContext.SaveChangesAsync();
 

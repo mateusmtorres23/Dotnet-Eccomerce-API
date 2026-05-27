@@ -65,7 +65,7 @@ public class StoreService
             throw new UnauthorizedUserException("This user is not authorized to view this information.");
         }
         
-        var ownerEmail =  await _dbContext.Users.Where(u => u.Id == userId)
+        var ownerEmail =  await _dbContext.Users.Where(u => u.Id == store.OwnerId)
             .Select(u => u.Email)
             .FirstOrDefaultAsync()
             ?? throw new ArgumentException("User not found.");

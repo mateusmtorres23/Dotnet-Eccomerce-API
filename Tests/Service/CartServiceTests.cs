@@ -30,6 +30,8 @@ public class CartServiceTests : IntegrationTestBase
     [Fact]
     public async Task AddProduct_ReturnCartItem()
     {
+        await ResetDatabaseAsync();
+        
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -129,6 +131,16 @@ public class CartServiceTests : IntegrationTestBase
         
         DbContext.Stores.AddRange(store);
         DbContext.Products.AddRange(product);
+
+        var cartItem = new CartItem
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            ProductId = product.Id
+        };
+        
+        DbContext.CartItems.AddRange(cartItem);
+        
         await DbContext.SaveChangesAsync();
         
         await _cartService.RemoveProductCart(new RemoveProductCartRequest(product.Id), user.Id);
