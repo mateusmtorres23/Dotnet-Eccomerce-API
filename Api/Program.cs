@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Infra;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using ecommerce_api;
+using Domain.DTOs.Auth;
+using Domain.DTOs.User;
+using Infra;
 using Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,12 +42,24 @@ builder.Services.AddAuthentication(options =>
     });
 
 builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<StoreService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<ProductService>();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
@@ -51,5 +67,47 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => "E-commerce API is running.");
+
+var api = app.MapGroup("/api");
+
+var authApi = api.MapGroup("/auth").AllowAnonymous();
+
+authApi.MapPost("/register", async (AuthService authService, RegisterRequest request) =>
+{
+    var response = await authService.RegisterUser(request);
+    return Results.Created("/api/auth/login", response);
+});
+
+authApi.MapPost("/login", async (AuthService authService, LoginRequest request) =>
+{
+    var response = await authService.LoginUser(request);
+    return Results.Ok(response);
+});
+
+var secureApi = api.MapGroup("").RequireAuthorization();
+
+var usersApi = secureApi.MapGroup("/users");
+
+usersApi.MapGet("/", async (UserService userService, HttpContext context) =>
+{
+    var requesterId = Guid.Parse(context.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    var users = await userService.ListUsers(requesterId);
+    return Results.Ok(users);
+});
+
+usersApi.MapGet("/{id:guid}", async (UserService userService, HttpContext context, Guid id) =>
+{
+    var requesterId = Guid.Parse(context.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    var userDetails = await userService.GetUserDetails(requesterId, id);
+    return Results.Ok(userDetails);
+});
+
+usersApi.MapPost("/upgrade", async (UserService userService, UpgradeRoleRequest request) =>
+{
+    var response = await userService.UpgradeRole(request);
+    return Results.Ok(response);
+});
+
+var storesApi = secureApi.MapGroup("/stores");
 
 app.Run();
