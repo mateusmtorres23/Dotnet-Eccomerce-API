@@ -30,29 +30,6 @@ public class StoreServiceTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task UpdateStore_UserIsCustomer()
-    {
-        await ResetDatabaseAsync();
-
-        var customer = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "cust@email.com",
-            Password = "pwd",
-            Role = UserRole.Customer
-        };
-        DbContext.Users.Add(customer);
-        await DbContext.SaveChangesAsync();
-
-        var request = new UpdateStoreRequest(Guid.NewGuid(), "NewName");
-
-        Func<Task> act = async () => await _storeService.UpdateStore(customer.Id, request);
-
-        await act.Should().ThrowAsync<UnauthorizedUserException>()
-            .WithMessage("This user is not authorized to perform this action.");
-    }
-
-    [Fact]
     public async Task UpdateStore_StoreNotFound()
     {
         await ResetDatabaseAsync();

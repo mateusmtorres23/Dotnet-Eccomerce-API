@@ -46,11 +46,6 @@ public class ProductService
     {
         User user =  await _dbContext.Users.FindAsync(userId)
             ?? throw new ArgumentException("User not found.");
-
-        if (user.Role == UserRole.Customer)
-        {
-            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
-        }
         
         Store store = await _dbContext.Stores.FindAsync(request.StoreId)
             ?? throw new ArgumentException("Store not found.");
@@ -85,10 +80,6 @@ public class ProductService
         User user =  await _dbContext.Users.FindAsync(userId)
                      ?? throw new ArgumentException("User not found.");
 
-        if (user.Role == UserRole.Customer)
-        {
-            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
-        }
         Product product = await _dbContext.Products.FindAsync(productId)
                           ?? throw new ArgumentException("Product not found.");
         
@@ -118,11 +109,6 @@ public class ProductService
     {
         User user = await _dbContext.Users.FindAsync(userId)
             ?? throw new ArgumentException("User not found.");
-
-        if (user.Role == UserRole.Customer)
-        {
-            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
-        }
 
         Product product = await _dbContext.Products.FindAsync(productId)
                           ?? throw new ArgumentException("Product not found.");

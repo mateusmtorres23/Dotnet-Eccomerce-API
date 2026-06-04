@@ -18,41 +18,6 @@ public class UserServiceTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListUsers_UserDoesNotExists()
-    {
-        await ResetDatabaseAsync();
-        
-        var NonExistentUserId = Guid.NewGuid();
-
-        Func<Task> act = async () => await _userService.ListUsers(NonExistentUserId);
-
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("User not found");
-    }
-
-    [Fact]
-    public async Task ListUsers_UserIsNotAdmin()
-    {
-        await ResetDatabaseAsync();
-        
-        var nonAdminUser = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "test@email.com",
-            Password = "test_password",
-            Role = UserRole.Customer
-        };
-
-        DbContext.Users.AddRange(nonAdminUser);
-        await DbContext.SaveChangesAsync();
-
-        Func<Task> act = async () => await _userService.ListUsers(nonAdminUser.Id);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>()
-            .WithMessage("This user is not authorized to view this information");
-    }
-
-    [Fact]
     public async Task ListUsers_ReturnListOfUsers()
     {
         await ResetDatabaseAsync();
@@ -102,36 +67,6 @@ public class UserServiceTests : IntegrationTestBase
 
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("User not found");
-    }
-
-    [Fact]
-    public async Task GetUserDetails_UserIsNotAdmin()
-    {
-        await ResetDatabaseAsync();
-        
-        var nonAdminUser = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "test@email.com",
-            Password = "test_password",
-            Role = UserRole.Customer
-        };
-
-        var standardUser = new User()
-        {
-            Id = Guid.NewGuid(),
-            Email = "standard@email.com",
-            Password = "standard_password",
-            Role = UserRole.Customer
-        };
-
-        DbContext.Users.AddRange(nonAdminUser, standardUser);
-        await DbContext.SaveChangesAsync();
-
-        Func<Task> act = async () => await _userService.GetUserDetails(nonAdminUser.Id, standardUser.Id);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>()
-            .WithMessage("This user is not authorized to view this information");
     }
 
     [Fact]

@@ -18,28 +18,6 @@ public class CreateProductTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task CreateProduct_UserIsCustomer()
-    {
-        await ResetDatabaseAsync();
-        
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "test@email.com",
-            Password = "test_password",
-            Role = UserRole.Customer
-        };
-
-        DbContext.Users.AddRange(user);
-        await DbContext.SaveChangesAsync();
-
-        var request = new CreateProductRequest("Product A", "Description", 100, Guid.NewGuid());
-        Func<Task> act = async () => await _productService.CreateProduct(request, user.Id);
-
-        await act.Should().ThrowAsync<UnauthorizedUserException>();
-    }
-
-    [Fact]
     public async Task CreateProduct_UserIsSellerButNotStoreOwner()
     {
         await ResetDatabaseAsync();

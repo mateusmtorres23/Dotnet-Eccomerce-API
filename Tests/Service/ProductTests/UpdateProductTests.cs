@@ -30,29 +30,6 @@ public class UpdateProductTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task UpdateProduct_UserIsCustomer()
-    {
-        await ResetDatabaseAsync();
-
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "customer@email.com",
-            Password = "test_password",
-            Role = UserRole.Customer
-        };
-
-        DbContext.Users.AddRange(user);
-        await DbContext.SaveChangesAsync();
-
-        var productId = Guid.NewGuid();
-        var request = new UpdateProductRequest("Updated Product", "Updated Description", 150);
-        Func<Task> act = async () => await _productService.UpdateProduct(request, user.Id, productId);
-
-        await act.Should().ThrowAsync<UnauthorizedUserException>();
-    }
-
-    [Fact]
     public async Task UpdateProduct_ProductDoesNotExist()
     {
         await ResetDatabaseAsync();

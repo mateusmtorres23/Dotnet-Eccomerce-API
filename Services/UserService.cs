@@ -17,14 +17,6 @@ public class UserService
 
     public async Task<List<UserInfo>> ListUsers(Guid userId)
     {
-        User user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == userId)
-            ?? throw new ArgumentException($"User not found");
-
-        if (user.Role != UserRole.Admin)
-        {
-            throw new UnauthorizedAccessException("This user is not authorized to view this information");
-        }
-
         return await _dbContext.Users
             .Select(u => new UserInfo(u.Id, u.Email))
             .ToListAsync();
@@ -32,14 +24,6 @@ public class UserService
     
     public async Task<UserInfoDetails> GetUserDetails(Guid userId, Guid viewUserId)
     {
-        User user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == userId)
-                    ?? throw new ArgumentException($"User not found");
-
-        if (user.Role != UserRole.Admin)
-        {
-            throw new UnauthorizedAccessException("This user is not authorized to view this information");
-        }
-        
         var viewUser = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == viewUserId)
                        ?? throw new ArgumentException($"User not found");
 

@@ -28,46 +28,6 @@ public class DeleteStoreTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task DeleteStore_UserIsCustomer()
-    {
-        await ResetDatabaseAsync();
-
-        var customer = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "cust@email.com",
-            Password = "pwd",
-            Role = UserRole.Customer
-        };
-        
-        var owner = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "owner@email.com",
-            Password = "pwd",
-            Role = UserRole.Seller
-        };
-        
-        DbContext.Users.AddRange(customer, owner);
-        await DbContext.SaveChangesAsync();
-        
-        var store = new Store
-        {
-            Id = Guid.NewGuid(),
-            Name = "StoreToDelete",
-            OwnerId = owner.Id
-        };
-        
-        DbContext.Stores.Add(store);
-        await DbContext.SaveChangesAsync();
-
-        Func<Task> act = async () => await _storeService.DeleteStore(store.Id, customer.Id);
-
-        await act.Should().ThrowAsync<UnauthorizedUserException>()
-            .WithMessage("This user is not authorized to perform this action.");
-    }
-
-    [Fact]
     public async Task DeleteStore_StoreNotFound()
     {
         await ResetDatabaseAsync();

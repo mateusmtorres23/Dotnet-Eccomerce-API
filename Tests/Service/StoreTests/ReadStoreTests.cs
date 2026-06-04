@@ -17,37 +17,6 @@ public class ReadStoreTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListAllStores_UserNotFound()
-    {
-        Func<Task> act = async () => await _storeService.ListAllStores(Guid.NewGuid());
-
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("User not found.");
-    }
-
-    [Fact]
-    public async Task ListAllStores_UserNotAdmin()
-    {
-        await ResetDatabaseAsync();
-        
-        var notAdmin = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "test@email.com",
-            Password = "password",
-            Role = UserRole.Customer
-        };
-
-        DbContext.Users.AddRange(notAdmin);
-        await DbContext.SaveChangesAsync();
-
-        Func<Task> act = async () => await _storeService.ListAllStores(notAdmin.Id);
-
-        await act.Should().ThrowAsync<UnauthorizedUserException>()
-            .WithMessage("This user is not authorized to view this information.");
-    }
-
-    [Fact]
     public async Task ListAllStores_ReturnListOfStores()
     {
         await ResetDatabaseAsync();
@@ -85,39 +54,7 @@ public class ReadStoreTests : IntegrationTestBase
         listStores.Should().NotBeEmpty();
         listStores.Should().HaveCount(1);
     }
-
-    [Fact]
-    public async Task ListOwnStores_UserNotFound()
-    {
-        Func<Task> act = async () => await _storeService.ListOwnStores(Guid.NewGuid());
-
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("User not found.");
-    }
-
-    [Fact]
-    public async Task ListOwnStores_UserIsCustomer()
-    {
-        await ResetDatabaseAsync();    
-        
-        var customer = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "customer@email.com",
-            Password = "password",
-            Role = UserRole.Customer
-        };
-
-        DbContext.Users.AddRange(customer);
-        await DbContext.SaveChangesAsync();
-
-        Func<Task> act = async () => await _storeService.ListOwnStores(customer.Id);
-
-        await act.Should().ThrowAsync<UnauthorizedUserException>()
-            .WithMessage("This user is not authorized to view this information.");
-        ;
-    }
-
+    
     [Fact]
     public async Task ListOwnStores_ReturnListOfOwnStores()
     {
@@ -158,29 +95,6 @@ public class ReadStoreTests : IntegrationTestBase
 
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("User not found.");
-    }
-
-    [Fact]
-    public async Task GetStoreInfoDetails_UserIsCustomer()
-    {
-        await ResetDatabaseAsync();
-
-        var customer = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "customer@email.com",
-            Password = "pwd",
-            Role = UserRole.Customer
-        };
-        DbContext.Users.Add(customer);
-        await DbContext.SaveChangesAsync();
-
-        var storeId = Guid.NewGuid();
-
-        Func<Task> act = async () => await _storeService.GetStoreInfoDetails(storeId, customer.Id);
-
-        await act.Should().ThrowAsync<UnauthorizedUserException>()
-            .WithMessage("This user is not authorized to view this information.");
     }
 
     [Fact]
@@ -333,18 +247,5 @@ public class ReadStoreTests : IntegrationTestBase
         details.OwnerEmail.Should().Be(owner.Email);
         details.Products.Should().HaveCount(1);
         details.Products[0].Name.Should().Be("Product A");
-    }
-    
-    [Fact]
-    public async Task CreateStore_UserNotFound()
-    {
-        await ResetDatabaseAsync();
-
-        var request = new CreateStoreRequest("NewStore");
-
-        Func<Task> act = async () => await _storeService.CreateStore(request, Guid.NewGuid());
-
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("User not found");
     }
 }

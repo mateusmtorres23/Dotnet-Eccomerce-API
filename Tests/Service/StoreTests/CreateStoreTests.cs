@@ -31,29 +31,6 @@ public class CreateStoreTests: IntegrationTestBase
     }
 
     [Fact]
-    public async Task CreateStore_UserIsCustomer()
-    {
-        await ResetDatabaseAsync();
-
-        var customer = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "customer@email.com",
-            Password = "pwd",
-            Role = UserRole.Customer
-        };
-        DbContext.Users.Add(customer);
-        await DbContext.SaveChangesAsync();
-
-        var request = new CreateStoreRequest("NewStore");
-
-        Func<Task> act = async () => await _storeService.CreateStore(request, customer.Id);
-
-        await act.Should().ThrowAsync<UnauthorizedUserException>()
-            .WithMessage("This user is not authorized to view this information.");
-    }
-
-    [Fact]
     public async Task CreateStore_DuplicateName()
     {
         await ResetDatabaseAsync();

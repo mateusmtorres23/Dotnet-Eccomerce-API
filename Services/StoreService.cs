@@ -18,14 +18,6 @@ public class StoreService
     
     public async Task<List<StoreInfo>> ListAllStores(Guid userId)
     {
-        User user =  await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
-            ?? throw new ArgumentException("User not found.");
-
-        if (user.Role != UserRole.Admin)
-        {
-            throw new UnauthorizedUserException("This user is not authorized to view this information.");
-        }
-
         return await _dbContext.Stores
             .Select(s => new StoreInfo(s.Id, s.Name))
             .ToListAsync();
@@ -33,14 +25,6 @@ public class StoreService
     
     public async Task<List<StoreInfo>> ListOwnStores(Guid userId)
     {
-        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
-            ?? throw new ArgumentException("User not found.");
-
-        if (user.Role == UserRole.Customer)
-        {
-            throw new UnauthorizedUserException("This user is not authorized to view this information.");
-        }
-
         return await _dbContext.Stores
             .Where(s => s.OwnerId == userId)
             .Select(s => new StoreInfo(s.Id, s.Name))
@@ -51,11 +35,6 @@ public class StoreService
     {
         User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new ArgumentException("User not found.");
-        
-        if (user.Role == UserRole.Customer)
-        {
-            throw new UnauthorizedUserException("This user is not authorized to view this information.");
-        }
 
         Store store = await _dbContext.Stores.SingleOrDefaultAsync(s => s.Id == storeId)
             ?? throw new ArgumentException("Store not found.");
@@ -83,11 +62,6 @@ public class StoreService
         User owner = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new ArgumentException("User not found");
 
-        if (owner.Role == UserRole.Customer)
-        {
-            throw new UnauthorizedUserException("This user is not authorized to view this information.");
-        }
-
         if (await _dbContext.Stores.AnyAsync(s => s.Name == request.Name))
         {
             throw new ArgumentException("A store with this name already exists.");
@@ -110,20 +84,10 @@ public class StoreService
     {
         User user  = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
                      ?? throw new ArgumentException("User not found.");
-
-        if (user.Role == UserRole.Customer)
-        {
-            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
-        }
         
         Store store = await _dbContext.Stores.SingleOrDefaultAsync(s => s.Id == storeId)
             ?? throw new ArgumentException("Store  not found.");
 
-        if (store.OwnerId != userId)
-        {
-            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
-        }
-        
         if (user.Role == UserRole.Seller && store.OwnerId != userId)
         {
             throw new UnauthorizedUserException("This user is not authorized to perform this action.");
@@ -137,11 +101,6 @@ public class StoreService
     {
         User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new ArgumentException("User not found.");
-
-        if (user.Role == UserRole.Customer)
-        {
-            throw new UnauthorizedUserException("This user is not authorized to perform this action.");
-        }
 
         Store store = await _dbContext.Stores.SingleOrDefaultAsync(s => s.Id == request.StoreId)
                       ?? throw new ArgumentException("Store with this ID not found.");

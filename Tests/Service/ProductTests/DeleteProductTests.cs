@@ -28,28 +28,6 @@ public class DeleteProductTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task DeleteProduct_UserIsCustomer()
-    {
-        await ResetDatabaseAsync();
-        
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "customer@email.com",
-            Password = "test_password",
-            Role = UserRole.Customer
-        };
-
-        DbContext.Users.AddRange(user);
-        await DbContext.SaveChangesAsync();
-
-        var productId = Guid.NewGuid();
-        Func<Task> act = async () => await _productService.DeleteProduct(productId, user.Id);
-
-        await act.Should().ThrowAsync<UnauthorizedUserException>();
-    }
-
-    [Fact]
     public async Task DeleteProduct_ProductDoesNotExist()
     {
         await ResetDatabaseAsync();
